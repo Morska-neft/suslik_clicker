@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <title>Suslik Clicker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+      background-color: #f0f8ff;
+      transition: background-color 0.5s;
+      position: relative;
+      overflow-x: hidden;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+    #counter {
+      font-size: 3em;
+      margin: 20px 0;
+    }
+    .info {
+      font-size: 1.2em;
+      margin: 10px 0;
+    }
+    .btn {
+      padding: 15px 30px;
+      font-size: 1.2em;
+      margin: 10px;
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      transition: all 0.3s;
+      transform-origin: center;
+    }
+    #clickButton {
+      background-color: #4CAF50;
+      color: white;
+    }
+    #upgradeButton {
+      background-color: #2196F3;
+      color: white;
+    }
+    #chaosButton {
+      background-color: #e91e63;
+      color: white;
+    }
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    #messageLog {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 250px;
+      max-height: 400px;
+      overflow-y: auto;
+      background-color: rgba(255, 255, 255, 0.95);
+      border: 2px solid #ccc;
+      padding: 10px;
+      text-align: left;
+      font-size: 0.9em;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .message {
+      background-color: #f9f9f9;
+      border-left: 5px solid #2196F3;
+      margin-bottom: 10px;
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+
+    .auto-clicker {
+      position: absolute;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      z-index: -1;
+    }
+
+    .kasane-teto {
+      position: fixed;
+      width: 200px;
+      height: 200px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      top: 50%;
+      left: 15%;
+      transform: translateY(-50%);
+      z-index: 9999;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>
+    <img src="file:///C:/Users/Jekabs/Downloads/Ekr%C4%81nuz%C5%86%C4%93mums_2025-05-07_233819-removebg-preview.png" 
+         alt="Suslik Clicker" style="max-width: 80%;">
+  </h1>
+
+  <div id="counter">0</div>
+  <div class="info">Klikšķa vērtība: <span id="clickValue">1</span></div>
+
+  <button id="clickButton" class="btn" onclick="clickHandler()">Klikšķini Mani!</button><br>
+  <button id="upgradeButton" class="btn" onclick="upgradeClick()">Palielini klikšķa vērtību (10 punkti)</button><br>
+  <button id="chaosButton" class="btn" onclick="chaosEffect()">Izsauc haosu! (<span id="chaosCost">25</span> punkti)</button>
+
+  <div id="messageLog"></div>
+
+  <script>
+    let points = 0;
+    let clickValue = 1;
+    let chaosPrice = 25;
+    let kasaneTetoActivated = false;
+    let autoClickerIntervals = [];
+
+    const suslikImage = "file:///C:/Users/Jekabs/Downloads/Ekr%C4%81nuz%C5%86%C4%93mums_2025-03-30_215348-removebg-preview.png";
+    const ultraSuslikImage = "file:///C:/Users/Jekabs/Downloads/Ekr%C4%81nuz%C5%86%C4%93mums_2025-05-07_173417-removebg-preview.png";
+    const managerSuslikImage = "file:///C:/Users/Jekabs/Downloads/Ekr%C4%81nuz%C5%86%C4%93mums_2025-05-07_235425-removebg-preview%20(1).png";
+    const kasaneTetoImage = "file:///C:/Users/Jekabs/Downloads/Ekr%C4%81nuz%C5%86%C4%93mums_2025-05-08_185557-removebg-preview.png";
+
+    const counterEl = document.getElementById("counter");
+    const clickValueEl = document.getElementById("clickValue");
+    const chaosCostEl = document.getElementById("chaosCost");
+    const clickBtn = document.getElementById("clickButton");
+    const upgradeBtn = document.getElementById("upgradeButton");
+    const chaosBtn = document.getElementById("chaosButton");
+    const messageLog = document.getElementById("messageLog");
+
+    function updateDisplay() {
+      counterEl.innerText = Math.floor(points);
+      clickValueEl.innerText = clickValue;
+      chaosCostEl.innerText = chaosPrice;
+    }
+
+    function clickHandler() {
+      points += clickValue;
+      updateDisplay();
+    }
+
+    function upgradeClick() {
+      if (points >= 10) {
+        points -= 10;
+        clickValue += 1;
+        updateDisplay();
+      } else {
+        alert("Nepietiek punktu!");
+      }
+    }
+
+    function addMessage(text) {
+      const msg = document.createElement("div");
+      msg.className = "message";
+      msg.textContent = text;
+      messageLog.prepend(msg);
+    }
+
+    function chaosEffect() {
+      if (points >= chaosPrice) {
+        points -= chaosPrice;
+        chaosPrice = Math.ceil(chaosPrice * 1.1);
+
+        const effects = [
+          () => { clickValue *= 2; addMessage("Klikšķa vērtība x2!"); },
+          () => { clickValue = Math.max(1, Math.floor(clickValue / 2)); addMessage("Klikšķa vērtība /2!"); },
+          () => { clickValue += 5; addMessage("Klikšķa vērtība +5!"); },
+          () => { clickValue = Math.max(1, clickValue - 3); addMessage("Klikšķa vērtība -3!"); },
+          () => { activateAutoClicker("suslik"); },
+          () => { maybeActivateUltraSuslik(); },
+          () => { changeBackgroundColor(); },
+          () => { changeButtonSizes(); },
+          () => { maybeActivateManagerSuslik(); },
+          () => { maybeActivateKasaneTeto(); }
+        ];
+
+        const effect = effects[Math.floor(Math.random() * effects.length)];
+        effect();
+
+        updateDisplay();
+      } else {
+        alert("Nepietiek punktu haosam!");
+      }
+    }
+
+    function maybeActivateUltraSuslik() {
+      if (Math.random() < 0.10) {
+        activateAutoClicker("ultra");
+      }
+    }
+
+    function maybeActivateManagerSuslik() {
+      if (Math.random() < 0.03) {
+        activateAutoClicker("manager");
+      }
+    }
+
+    function maybeActivateKasaneTeto() {
+      if (!kasaneTetoActivated && Math.random() < 0.07) {
+        kasaneTetoActivated = true;
+
+        const tetoDiv = document.createElement("div");
+        tetoDiv.className = "kasane-teto";
+        tetoDiv.style.backgroundImage = `url('${kasaneTetoImage}')`;
+        document.body.appendChild(tetoDiv);
+
+        addMessage("Kasane Teto :3 parādījās!");
+        makeAutoClickersFaster();
+      }
+    }
+
+    function activateAutoClicker(type) {
+      const autoClickDiv = document.createElement("div");
+      autoClickDiv.className = "auto-clicker";
+
+      const maxX = window.innerWidth - 210;
+      const maxY = window.innerHeight - 210;
+      autoClickDiv.style.left = Math.floor(Math.random() * maxX) + "px";
+      autoClickDiv.style.top = Math.floor(Math.random() * maxY) + "px";
+
+      let intervalTime = 1000;
+      let intervalFn;
+
+      if (type === "suslik") {
+        autoClickDiv.style.backgroundImage = `url('${suslikImage}')`;
+        autoClickDiv.style.width = "150px";
+        autoClickDiv.style.height = "150px";
+        addMessage("Suslik Auto Clicker aktivizēts!");
+        intervalFn = () => { clickHandler(); };
+        intervalTime = 1000;
+      } else if (type === "ultra") {
+        autoClickDiv.style.backgroundImage = `url('${ultraSuslikImage}')`;
+        autoClickDiv.style.width = "150px";
+        autoClickDiv.style.height = "150px";
+        addMessage("Ultra Suslik Auto Clicker aktivizēts!");
+        intervalFn = () => {
+          clickValue += 1;
+          updateDisplay();
+        };
+        intervalTime = 100;
+      } else if (type === "manager") {
+        autoClickDiv.style.backgroundImage = `url('${managerSuslikImage}')`;
+        autoClickDiv.style.width = "200px";
+        autoClickDiv.style.height = "200px";
+        addMessage("MANEGER SUSLIK aktivizēts! Punkti tiks reizināti x2 ik pēc 10 sekundēm!");
+        intervalFn = () => {
+          points *= 2;
+          updateDisplay();
+        };
+        intervalTime = 10000;
+      }
+
+      if (kasaneTetoActivated) intervalTime = intervalTime / 2;
+
+      const intervalId = setInterval(intervalFn, intervalTime);
+      autoClickerIntervals.push({ id: intervalId, fn: intervalFn, time: intervalTime, type: type });
+
+      document.body.appendChild(autoClickDiv);
+    }
+
+    function makeAutoClickersFaster() {
+      // Pārrakstām visus intervālus uz 2x ātrākiem
+      autoClickerIntervals.forEach(auto => {
+        clearInterval(auto.id);
+        const newTime = auto.time / 2;
+        const newId = setInterval(auto.fn, newTime);
+        auto.id = newId;
+        auto.time = newTime;
+      });
+      addMessage("Visi auto-clickeri tagad ir 2x ātrāki!");
+    }
+
+    function changeBackgroundColor() {
+      const randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+      document.body.style.backgroundColor = randomColor;
+      addMessage("Fona krāsa mainīta!");
+    }
+
+    function changeButtonSizes() {
+      const scale = (Math.random() * 1.5 + 0.5).toFixed(2);
+      [clickBtn, upgradeBtn, chaosBtn].forEach(btn => {
+        btn.style.transform = `scale(${scale})`;
+      });
+      addMessage("Pogu izmērs mainīts uz " + scale + "x!");
+    }
+  </script>
+
+</body>
+</html>
